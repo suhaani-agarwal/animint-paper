@@ -12,7 +12,7 @@ UStornadoCounts <- ddply(UStornadoes, .(state, year), summarize, count=length(st
 seg.color <- "#55B1F7"
 viz <- animint(
   title = 'US Tornado Visualization',
-  source = 'https://github.com/tdhock/animint-paper/blob/3145684d8a164d8d576fc00a078a72083b4d5389/examples/tornado/viz.R',
+  source = 'https://github.com/suhaani-agarwal/animint-paper/blob/master/examples/tornado/viz.R',
   map = ggplot() +
     theme_bw() +
     theme_animint(width=750, height=500) +
