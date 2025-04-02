@@ -21,18 +21,20 @@ viz <- animint(
                 colour=seg.color, 
                 showSelected="year",
                 data=UStornadoes) +
-    
     geom_polygon(aes(x=long, y=lat, group=group),
                  clickSelects="state",
                  data=USpolygons, 
-                 fill="#000000", 
-                 colour="#a9a9a92d", 
+                 fill="#000000",
+                 colour="white", 
+                 size=0.5, 
                  alpha=1) + 
     geom_point(aes(endLong, endLat),               
                colour=seg.color, 
                showSelected="year",
                data=UStornadoes) +
     theme(axis.line=element_blank(), 
+    panel.background = element_rect(fill = "white", colour = "white"),
+    panel.border = element_rect(colour = "white", fill = NA, size = 2),
           axis.text=element_blank(), 
           axis.ticks=element_blank(), 
           axis.title=element_blank()),
