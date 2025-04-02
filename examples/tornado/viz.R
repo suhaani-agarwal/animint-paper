@@ -11,12 +11,21 @@ USpolygons$state <- state.abb[match(USpolygons$region, tolower(state.name))]
 UStornadoCounts <- ddply(UStornadoes, .(state, year), summarize, count=length(state))
 seg.color <- "#55B1F7"
 viz <- animint(
-  title = 'US Tornado Visualization',
+  title = "Tornadoes in the United States",
   source = 'https://github.com/suhaani-agarwal/animint-paper/blob/master/examples/tornado/viz.R',
   map = ggplot() +
     theme_bw() +
     theme_animint(width=750, height=500) +
-    make_text(UStornadoes, -100, 50, "year", "Tornado paths and endpoints in %d") +
+    geom_text(
+      aes(
+        x = -100,
+        y = 50,
+        label = paste("Tornado paths and endpoints in", year)
+      ),
+      showSelected = "year",
+      size = 17,
+      data = data.frame(year = unique(UStornadoes$year))
+    ) +
     geom_segment(aes(x=startLong, y=startLat, xend=endLong, yend=endLat),
                 colour=seg.color, 
                 showSelected="year",
@@ -32,7 +41,7 @@ viz <- animint(
                colour=seg.color, 
                showSelected="year",
                data=UStornadoes) +
-    theme(axis.line=element_blank(), 
+    theme(axis.line=element_blank(),
     panel.background = element_rect(fill = "white", colour = "white"),
     panel.border = element_rect(colour = "white", fill = NA, size = 2),
           axis.text=element_blank(), 
@@ -41,6 +50,7 @@ viz <- animint(
   
   ts = ggplot() +
     theme_animint(width=300, height=400) +
+    theme_bw()+
     xlab("year") +
     ylab("Number of tornadoes") +
     geom_bar(aes(year, count),
@@ -49,13 +59,28 @@ viz <- animint(
              data=UStornadoCounts, 
              stat="identity", 
              color = "black",
-             fill = "grey",
-             alpha = 2,
+             fill = "#22212100",
+             alpha = 1,
              position="identity") +
-    make_text(UStornadoes, 1980, 200, "state") +
+    geom_text(
+      aes(
+        x = 1980,
+        y = 200,
+        label = state
+      ),
+      showSelected = "state",
+      size = 17,
+      hjust = 0,
+      data = UStornadoes[!duplicated(UStornadoes$state), ]  # Unique states
+    ) +
     geom_text(aes(year, count + 5, label=count),
               showSelected=c("state", "year"),
               data=UStornadoCounts, 
-              size=20)
+              size=20)+
+    theme(
+      panel.background = element_rect(fill = "white"),
+      panel.grid.major = element_line(color = "grey90")
+    )
 )
 animint2pages(viz, "tornado-visualization")
+
