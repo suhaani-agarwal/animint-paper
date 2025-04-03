@@ -13,6 +13,7 @@ seg.color <- "#55B1F7"
 viz <- animint(
   title = "Tornadoes in the United States",
   source = 'https://github.com/suhaani-agarwal/animint-paper/blob/master/examples/tornado/viz.R',
+  video = "https://vimeo.com/1072120042/29ea7f22a6",
   map = ggplot() +
     theme_bw() +
     theme_animint(width=750, height=500) +
