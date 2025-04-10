@@ -162,8 +162,7 @@ viz <- list(
     id = climate$id[1]
   ),
   title = "Central American Temperature Maps",
-  source = 'http://github.com/suhaani-agarwal/animint-paper/blob/master/examples/climate/viz.R',
-  video = "https://vimeo.com/1072120042/29ea7f22a6"
+  source = 'http://github.com/suhaani-agarwal/animint-paper/blob/master/examples/climate/viz.R'
 )
 
 # Generate the visualization
