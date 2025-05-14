@@ -28,15 +28,17 @@ var.names <- c("surftemp", "surfdev")
 dot.alpha <- 6/10
 selected.color <- "#ff89ff"
 getlab <- function(var.name){
-  sprintf("%s (degrees Celsius)", long.names[[var.name]])
+  sprintf("%s (deg. Celsius)", long.names[[var.name]])
 }
-
+summary(climate[c("id", "time2", "long", "lat", "surftemp")])
+table(climate$id, climate$time2)
 # Main visualization definition
 viz <- list(
   surftempMap = ggplot() + 
     theme_bw() +
-    geom_tile(aes(x = long, y = lat, fill = surftemp, key = id),
-            clickSelects = "id", showSelected = "time2",
+    theme_animint(width=420, height=450) +
+    geom_tile(aes(x = long, y = lat, fill = surftemp, key = paste(id, time2)),
+            clickSelects = "id", showSelected = c("time2"),
             data = climate) + 
     scale_fill_gradient2("deg. C", low = "blue", mid = "white", high = "#ff0000",
                        midpoint = 0, limits = lims$surftemp) + 
@@ -51,11 +53,12 @@ viz <- list(
         axis.title = element_blank()),
   surfdevMap = ggplot() + 
   theme_bw() +
+  theme_animint(width=420, height=450) +
   geom_tile(aes(
     x = long, 
     y = lat, 
     fill = surfdev,
-    key = id
+    key = paste(time2,id)
   ),
   clickSelects = "id", 
   showSelected = "time2",
@@ -78,24 +81,46 @@ viz <- list(
     axis.ticks = element_blank(), 
     axis.title = element_blank()),
   
-  scatterNow = ggplot() +
-    geom_text(aes(20, -7, label = sprintf("all regions in %s", textdate), key = 1),
-            showSelected = "time2",
-            data = dates) +
-    theme_bw() +
-    geom_hline(yintercept = 0) +
-    geom_vline(xintercept = 0) +
-    xlim(-10, 40) +
-    ylim(-8, 8) +
-    xlab(getlab(var.names[[1]])) +
-    ylab(getlab(var.names[[2]])) +
-    geom_point(aes_string(x = var.names[[1]], y = var.names[[2]], key = "id"),
-             clickSelects = "id", showSelected = "time2",
-             data = climate, alpha = dot.alpha,
-             selected.color = "black", selected.fill = selected.color),
+scatterNow = ggplot() +
+  geom_text(
+    aes(20, -7, label = sprintf("all regions in %s", textdate), key = 1),
+    showSelected = "time2",
+    data = dates
+  ) +
+  theme_bw() +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  xlim(-10, 40) +
+  ylim(-8, 8) +
+  xlab(getlab(var.names[[1]])) +
+  ylab(getlab(var.names[[2]])) +
+  theme_animint(width=420, height=450) +
+  # All points (unselected)
+  geom_point(
+    aes_string(x = var.names[[1]], y = var.names[[2]], key = "id"),
+    data = climate,
+    alpha = 0.7,
+    color = "black",
+    fill = "grey",
+    size = 2.5,
+    clickSelects = "id",
+    showSelected = "time2"
+  ) +
+  # Selected points (only shown when id is selected)
+  geom_point(
+    aes_string(x = var.names[[1]], y = var.names[[2]], key = "id"),
+    data = climate,
+    color = selected.color,  # Purple for selected
+    fill = "#ee65e9",
+    size = 3.5,               # Slightly larger when selected
+    alpha = 1,              # Opaque when selected
+    showSelected = c("id", "time2")  # Only show for selected id and time2
+  ),
+
+
 surftempTimeSeries = ggplot() +
 theme_bw()+
-  theme_animint(width = 463) +
+  theme_animint(width=450, height=450) +
   geom_hline(yintercept = 0) +
   make_tallrect(climate, "time2") +
   xlab("Year of measurement") +
@@ -122,7 +147,7 @@ theme_bw()+
   ),  # Actual selection,
   surfdevTimeSeries = ggplot() +
   theme_bw()+
-  theme_animint(width = 463) +
+  theme_animint(width=450, height=450) +
   geom_hline(yintercept = 0) +
   make_tallrect(climate, "time2") +
   xlab("Year of measurement") +
@@ -148,24 +173,50 @@ theme_bw()+
     showSelected = "id"
   ),  
   scatterHere = ggplot() +
-    make_text(climate, 20, -7, "id", "all times for region %s") +
-    theme_bw() +
-    xlab(getlab(var.names[[1]])) +
-    ylab(getlab(var.names[[2]])) +
-    geom_hline(yintercept = 0) +
-    geom_vline(xintercept = 0) +
-    xlim(-10, 40) +
-    ylim(-8, 8) +
-    geom_point(aes_string(x = var.names[[1]], y = var.names[[2]], key = "time2"), clickSelects = "time2", showSelected = "id",
-             data = climate, alpha = dot.alpha,
-             selected.color = "black", selected.fill = selected.color),
+  make_text(climate, 20, -7, "id", "all times for region %s") +
+  theme_bw() +
+  theme_animint(width=450, height=450) +
+  xlab(getlab(var.names[[1]])) +
+  ylab(getlab(var.names[[2]])) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  xlim(-10, 40) +
+  ylim(-8, 8) +
+  # All points (unselected)
+  geom_point(
+    aes_string(x = var.names[[1]], y = var.names[[2]], key = "time2"),
+    data = climate,
+    alpha = 0.7,
+    color = "black",
+    fill = "grey",
+    size = 2.5,
+    clickSelects = "time2",
+    showSelected = "id"
+  ) +
+  # Selected points (only shown when time2 is selected)
+  geom_point(
+    aes_string(x = var.names[[1]], y = var.names[[2]], key = "time2"),
+    data = climate,
+    color = selected.color,  # Purple for selected
+    fill = "#ee65e9",
+    size = 3.5,               # Slightly larger when selected
+    alpha = 1,              # Opaque when selected
+    showSelected = c("time2", "id")  # Only show for selected time2 and id
+  ),
   
   # Animation parameters
-  duration = list(time2 = 1000, id = 1000),
+  duration = list(time2 = 2000, id = 1000),
   time = list(
     variable = "time2", 
-    ms = 2000,
-    smooth = TRUE
+    ms = 3000,
+    # smooth = TRUE,
+    smooth = list(
+    method = "linear",
+    duration = 2000
+  ),
+    interpolate = list(
+    surftemp = "linear",
+    surfdev = "linear")
   ),
   selector.types = list(
     time2 = "single",
