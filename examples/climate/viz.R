@@ -33,7 +33,7 @@ lims <- list(surftemp = c(-10, 40),
 var.names <- c("surftemp", "surfdev")
 dot.alpha <- 6/10
 selected.color.region <- "#ff89ff"  # Purple for selected region
-selected.color.time <- "blue"
+selected.color.time <- "blue"  # Blue for the selected time
 getlab <- function(var.name){
   sprintf("%s (deg. Celsius)", long.names[[var.name]])
 }
