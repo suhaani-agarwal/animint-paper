@@ -45,7 +45,7 @@ viz <- list(
     theme_bw() +
     theme_animint(width=420, height=450) +
     geom_tile(aes(x = long, y = lat, fill = surftemp, key = paste(id, time2)),
-            clickSelects = "id", showSelected = c("time2"),
+            clickSelects = "id", showSelected = "time2",
             data = climate,
             help = "Map showing surface temperature by region. Click to select a region.") + 
     scale_fill_gradient2("deg. C", low = "blue", mid = "white", high = "#ff0000",
