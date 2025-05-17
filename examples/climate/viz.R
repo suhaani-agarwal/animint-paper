@@ -250,7 +250,7 @@ viz <- list(
       scatterHere = ggplot() +
       make_text(climate, 20, -7, "id", "all times for region %s") +
       theme_bw() +
-      theme_animint(width=430, height=450) +
+      theme_animint(width=420, height=450) +
       xlab(getlab(var.names[[1]])) +
       ylab(getlab(var.names[[2]])) +
       geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
