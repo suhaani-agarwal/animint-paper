@@ -2,6 +2,7 @@ library(animint2)
 library(maps)
 library(lubridate)
 library(plyr)
+library(data.table)
 
 # Data preparation
 data(climate)
@@ -32,11 +33,21 @@ lims <- list(surftemp = c(-10, 40),
            surfdev = c(-8, 8))
 var.names <- c("surftemp", "surfdev")
 dot.alpha <- 6/10
-selected.color.region <- "#ff89ff"  # Purple for selected region
-selected.color.time <- "blue"  # Blue for the selected time
+
+selected.color.region <- "#59d715"  # Green for selected region
+selected.color.time <- "#263ff9"  # Blue for the selected time
 getlab <- function(var.name){
   sprintf("%s (deg. Celsius)", long.names[[var.name]])
 }
+
+legend_data <- data.frame(
+  label = c("region", "time"),
+  color = c(selected.color.region, selected.color.time),
+  # Using extreme x/y values that won't overlap with real data
+  x = c(-Inf, -Inf),
+  y = c(-Inf, -Inf)
+)
+
 
 # Main visualization definition
 viz <- list(
@@ -44,7 +55,7 @@ viz <- list(
   surftempMap = ggplot() + 
     theme_bw() +
     theme_animint(width=420, height=450) +
-    geom_tile(aes(x = long, y = lat, fill = surftemp, key = paste(id, time2)),
+    geom_tile(aes(x = long, y = lat, fill = surftemp, key = paste(id, time2)), color = selected.color.region ,
             clickSelects = "id", showSelected = "time2",
             data = climate,
             help = "Map showing surface temperature by region. Click to select a region.") + 
@@ -71,7 +82,7 @@ viz <- list(
       y = lat, 
       fill = surfdev,
       key = paste(time2,id),group = id
-    ),
+    ),color = selected.color.region,
     help = "Map showing deviation from monthly temperature norms. Click to select a region.",
     clickSelects = "id", 
     showSelected = "time2",
@@ -128,8 +139,8 @@ viz <- list(
       geom_point(
         aes_string(x = var.names[[1]], y = var.names[[2]]),
         data = climate,
-        color = selected.color.region,  # Purple for selected
-        fill = "#ee65e9",
+        color = "#86ff86",
+        fill = selected.color.region,
         size = 3.5,               # Slightly larger when selected
         alpha = 1,              # Opaque when selected
         showSelected = c("id", "time2") , # Only show for selected id and time2
@@ -139,11 +150,15 @@ viz <- list(
     # Surface temperature time series plot
     surftempTimeSeries = ggplot() +
     theme_bw()+
-      theme_animint(width=450, height=450) +
+      theme_animint(width=410, height=450) +
       geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
-      make_tallrect(climate, "time2", color = "blue") + # Blue time selector
+      
       xlab("Year of measurement") +
       ylab(getlab(var.names[[1]])) +
+      make_tallrect(climate, "time2", 
+                    color = selected.color.time, 
+                    help = "Interactive time selector - click or drag to change time.",
+                    fill = selected.color.time) +
       # All lines
       geom_line(
         aes_string(x = "time2", y = var.names[[1]], group = "id"),
@@ -154,22 +169,45 @@ viz <- list(
         clickSelects = "id",
         help = "All regions' temperature time series."
       ) +
-      # Selected region (purple)
+
+      # Selected region (green)
       geom_line(
         aes_string(x = "time2", y = var.names[[1]], key = 1),
         data = climate,
-        colour = selected.color.region, # Purple for selected
+        colour = selected.color.region, # Green for selected
         size = 3,             # Slightly bolder when selected
         alpha = 2,              # Opaque when selected
         showSelected = "id" ,    # Only show for selected id
         help = "Highlighted line showing selected region's temperature over time."
-      ),
+      )+
       
+      # Add legend using completely invisible and non-intrusive points
+      geom_line(
+        aes(x = x, y = y, color = label),
+        data = legend_data,
+        alpha = 0,
+        size = 0
+      ) +
+      
+      # Manual color scale
+      scale_color_manual(
+        name = "Selected",
+        values = c("region" = selected.color.region, 
+                  "time" = selected.color.time)
+      ) +
+      
+      guides(color = guide_legend(override.aes = list(alpha = 1, size = 3, clickSelects = FALSE))) ,
+
+
+      # Surface temperature deviation time series plot
       surfdevTimeSeries = ggplot() +
       theme_bw()+
-      theme_animint(width=450, height=450) +
+      theme_animint(width=410, height=450) +
       geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
-      make_tallrect(climate, "time2", color = "blue", help = "Interactive time selector - click or drag to change time.") +
+      make_tallrect(climate, "time2", 
+                    color = selected.color.time, 
+                    help = "Interactive time selector - click or drag to change time.",
+                    fill = selected.color.time) +
       xlab("Year of measurement") +
       ylab(getlab(var.names[[2]])) +
       geom_line(
@@ -189,13 +227,30 @@ viz <- list(
         alpha = 1,
         showSelected = "id",
         help = "Highlighted line showing selected region's temperature deviation over time."
-      ),  
+      )+
+    
+      # Add legend using completely invisible and non-intrusive points
+      geom_line(
+        aes(x = x, y = y, color = label),
+        data = legend_data,
+        alpha = 0,
+        size = 0
+      ) +
+      
+      # Manual color scale
+      scale_color_manual(
+        name = "Selected",
+        values = c("region" = selected.color.region, 
+                  "time" = selected.color.time)
+      ) +
+      
+      guides(color = guide_legend(override.aes = list(alpha = 1, size = 3, clickSelects = FALSE))) , 
 
     # ScatterHere plot
       scatterHere = ggplot() +
       make_text(climate, 20, -7, "id", "all times for region %s") +
       theme_bw() +
-      theme_animint(width=450, height=450) +
+      theme_animint(width=430, height=450) +
       xlab(getlab(var.names[[1]])) +
       ylab(getlab(var.names[[2]])) +
       geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
@@ -218,7 +273,7 @@ viz <- list(
       geom_point(
         aes_string(x = var.names[[1]], y = var.names[[2]]),
         data = climate,
-        color = "#6464ff",  # Blue for selected time
+        color = "#9595ff",  # Blue for selected time
         fill = selected.color.time,
         size = 3.5,               # Slightly larger when selected
         alpha = 1,              # Opaque when selected
