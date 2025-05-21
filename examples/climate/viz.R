@@ -147,56 +147,52 @@ viz <- list(
         help = "Highlighted point showing selected region's temperature data."
       ),
 
-    # Surface temperature time series plot
-    surftempTimeSeries = ggplot() +
-    theme_bw()+
-      theme_animint(width=410, height=450) +
-      geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
-      
-      xlab("Year of measurement") +
-      ylab(getlab(var.names[[1]])) +
-      make_tallrect(climate, "time2", 
+    
+surftempTimeSeries = ggplot() +
+        theme_bw() +
+        theme_animint(width=410, height=450) +
+        geom_hline(yintercept = 0) +
+        xlab("Year of measurement") +
+        ylab("Surface Temperature (deg. Celsius)") +
+        
+        # All lines (gray)
+        geom_line(
+          aes(x = time2, y = surftemp, group = id),
+          data = climate,
+          colour = "black",
+          size = 1.5,
+          alpha = 0.55,
+          clickSelects = "id"
+        ) +
+        
+        # Selected line (green) - properly connected to legend
+        geom_line(
+          aes(x = time2, y = surftemp, color = Selected),
+          data = transform(climate, Selected = "Region"),
+          size = 3,
+          alpha = 1,
+          showSelected = "id"
+        ) +
+        make_tallrect(climate, "time2", 
                     color = selected.color.time, 
-                    help = "Interactive time selector - click or drag to change time.",
-                    fill = selected.color.time) +
-      # All lines
-      geom_line(
-        aes_string(x = "time2", y = var.names[[1]], group = "id"),
-        data = climate,
-        colour = "black",
-        size = 1.5,
-        alpha = 0.55,
-        clickSelects = "id",
-        help = "All regions' temperature time series."
-      ) +
-
-      # Selected region (green)
-      geom_line(
-        aes_string(x = "time2", y = var.names[[1]], key = 1),
-        data = climate,
-        colour = selected.color.region, # Green for selected
-        size = 3,             # Slightly bolder when selected
-        alpha = 2,              # Opaque when selected
-        showSelected = "id" ,    # Only show for selected id
-        help = "Highlighted line showing selected region's temperature over time."
-      )+
-      
-      # Add legend using completely invisible and non-intrusive points
-      geom_line(
-        aes(x = x, y = y, color = label),
-        data = legend_data,
-        alpha = 0,
-        size = 0
-      ) +
-      
-      # Manual color scale
-      scale_color_manual(
-        name = "Selected",
-        values = c("region" = selected.color.region, 
-                  "time" = selected.color.time)
-      ) +
-      
-      guides(color = guide_legend(override.aes = list(alpha = 1, size = 3, clickSelects = FALSE))) ,
+                    fill = selected.color.time, alpha = 0.3) +
+        geom_tallrect(
+          aes(xmin = (time2)-0.05, xmax = (time2)+0.05, color = Selected),       
+          clickSelects = "time2",
+          fill = selected.color.time,
+          showSelected = "time2",
+          alpha = 0.3,
+          data = transform(climate, Selected = "Time"),
+          help = "Interactive time selector - click or drag to change time."
+        ) +
+        
+        # Color scale
+        scale_color_manual(
+          name = "Selected",
+          values = c("Region" = selected.color.region,
+                    "Time" = selected.color.time),
+          
+        ),
 
 
       # Surface temperature deviation time series plot
@@ -204,12 +200,9 @@ viz <- list(
       theme_bw()+
       theme_animint(width=410, height=450) +
       geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
-      make_tallrect(climate, "time2", 
-                    color = selected.color.time, 
-                    help = "Interactive time selector - click or drag to change time.",
-                    fill = selected.color.time) +
       xlab("Year of measurement") +
       ylab(getlab(var.names[[2]])) +
+      # All lines (gray)
       geom_line(
         aes_string(x = "time2", y = var.names[[2]], group = "id"),
         data = climate,
@@ -219,32 +212,42 @@ viz <- list(
         clickSelects = "id",
         help = "All regions' temperature deviation time series."
       ) +
+      # Selected line (green)
+        geom_line(
+          aes(x = time2, y = surfdev, color = Selected),
+          data = transform(climate, Selected = "Region"),
+          size = 3,
+          alpha = 1,
+          showSelected = "id"
+        ) +
       geom_line(
-        aes_string(x = "time2", y = var.names[[2]], key = 1),
-        data = climate,
-        colour = selected.color.region,
-        size = 2,
-        alpha = 1,
-        showSelected = "id",
-        help = "Highlighted line showing selected region's temperature deviation over time."
-      )+
+          aes(x = time2, y = surfdev, color = Selected),
+          data = transform(climate, Selected = "Region"),
+          size = 3,
+          alpha = 1,
+          showSelected = "id"
+        ) +
     
-      # Add legend using completely invisible and non-intrusive points
-      geom_line(
-        aes(x = x, y = y, color = label),
-        data = legend_data,
-        alpha = 0,
-        size = 0
-      ) +
-      
-      # Manual color scale
-      scale_color_manual(
-        name = "Selected",
-        values = c("region" = selected.color.region, 
-                  "time" = selected.color.time)
-      ) +
-      
-      guides(color = guide_legend(override.aes = list(alpha = 1, size = 3, clickSelects = FALSE))) , 
+      make_tallrect(climate, "time2", 
+                    color = selected.color.time, 
+                    fill = selected.color.time, alpha = 0.3) +
+        geom_tallrect(
+          aes(xmin = (time2)-0.05, xmax = (time2)+0.05, color = Selected),       
+          clickSelects = "time2",
+          fill = selected.color.time,
+          showSelected = "time2",
+          alpha = 0.3,
+          data = transform(climate, Selected = "Time"),
+          help = "Interactive time selector - click or drag to change time."
+        ) +
+        
+        # Color scale
+        scale_color_manual(
+          name = "Selected",
+          values = c("Region" = selected.color.region,
+                    "Time" = selected.color.time),
+          
+        ),
 
     # ScatterHere plot
       scatterHere = ggplot() +
@@ -282,7 +285,7 @@ viz <- list(
       ),
       
       # Animation parameters
-      duration = list(time2 = 2000, id = 1000),
+      duration = list(time2 = 2200, id = 1000),
       time = list(
         variable = "time2", 
         ms = 3000
