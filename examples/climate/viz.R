@@ -25,6 +25,7 @@ dates <- ddply(climate, .(date), summarise,
              time2 = time2[1], textdate = paste(month.name[month], year))
 dates <- dates[order(dates$date),]
 
+
 # Visualization parameters
 long.names <- c(surftemp = "Surface temperature",
               temperature = "Temperature",
@@ -40,21 +41,15 @@ getlab <- function(var.name){
   sprintf("%s (deg. Celsius)", long.names[[var.name]])
 }
 
-legend_data <- data.frame(
-  label = c("region", "time"),
-  color = c(selected.color.region, selected.color.time),
-  # Using extreme x/y values that won't overlap with real data
-  x = c(-Inf, -Inf),
-  y = c(-Inf, -Inf)
-)
-
+climate$formatted_time <- format(ymd(climate$date), "%Y-%m")
+print(head(climate))
 
 # Main visualization definition
 viz <- list(
   #Surface Temperature map
   surftempMap = ggplot() + 
     theme_bw() +
-    theme_animint(width=420, height=450) +
+    theme_animint(width=400, height=450) +
     geom_tile(aes(x = long, y = lat, fill = surftemp, key = paste(id, time2)), color = selected.color.region ,
             clickSelects = "id", showSelected = "time2",
             data = climate,
@@ -76,7 +71,7 @@ viz <- list(
     #Surface Temperature deviation map (monthly)
     surfdevMap = ggplot() + 
     theme_bw() +
-    theme_animint(width=420, height=450) +
+    theme_animint(width=400, height=450) +
     geom_tile(aes(
       x = long, 
       y = lat, 
@@ -107,54 +102,123 @@ viz <- list(
       axis.ticks = element_blank(), 
       axis.title = element_blank()),
     
-  # Current time scatterplot
-    scatterNow = ggplot() +
-      geom_text(
-        aes(20, -7, label = sprintf("all regions in %s", textdate), key = 1),
-        showSelected = "time2",
-        data = dates,
-        help = "Title showing current time period for the scatterplot."
-      ) +
-      theme_bw() +
-      geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
-      geom_vline(xintercept = 0, help = "Vertical zero line for reference.") +
-      xlim(-10, 40) +
-      ylim(-8, 8) +
-      xlab(getlab(var.names[[1]])) +
-      ylab(getlab(var.names[[2]])) +
-      theme_animint(width=420, height=450) +
-      # All points (unselected)
-      geom_point(
-        aes_string(x = var.names[[1]], y = var.names[[2]], key = "id"),
-        data = climate,
-        alpha = 0.7,
-        color = "black",
-        fill = "grey",
-        size = 2.5,
-        clickSelects = "id",
-        showSelected = "time2",
-        help = "All regions' temperature data points for the selected time."
-      ) +
-      # Selected points (only shown when id is selected)
-      geom_point(
-        aes_string(x = var.names[[1]], y = var.names[[2]]),
-        data = climate,
-        color = "#86ff86",
-        fill = selected.color.region,
-        size = 3.5,               # Slightly larger when selected
-        alpha = 1,              # Opaque when selected
-        showSelected = c("id", "time2") , # Only show for selected id and time2
-        help = "Highlighted point showing selected region's temperature data."
-      ),
+  # # Current time scatterplot
+  #   scatterNow = ggplot() +
+  #     geom_text(
+  #       aes(20, -7, label = sprintf("all regions in %s", textdate), key = 1),
+  #       showSelected = "time2",
+  #       data = dates,
+  #       help = "Title showing current time period for the scatterplot."
+  #     ) +
+  #     theme_bw() +
+  #     geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
+  #     geom_vline(xintercept = 0, help = "Vertical zero line for reference.") +
+  #     xlim(-10, 40) +
+  #     ylim(-8, 8) +
+  #     xlab(getlab(var.names[[1]])) +
+  #     ylab(getlab(var.names[[2]])) +
+  #     theme_animint(width=420, height=450) +
+  #     # All points (unselected)
+  #     geom_point(
+  #       aes_string(x = var.names[[1]], y = var.names[[2]], key = "id"),
+  #       data = climate,
+  #       alpha = 0.7,
+  #       color = "black",
+  #       fill = "grey",
+  #       size = 2.5,
+  #       clickSelects = "id",
+  #       showSelected = "time2",
+  #       help = "All regions' temperature data points for the selected time."
+  #     ) +
+  #     # Selected points (only shown when id is selected)
+  #     geom_point(
+  #       aes_string(x = var.names[[1]], y = var.names[[2]]),
+  #       data = climate,
+  #       color = "#86ff86",
+  #       fill = selected.color.region,
+  #       size = 3.5,               # Slightly larger when selected
+  #       alpha = 1,              # Opaque when selected
+  #       showSelected = c("id", "time2") , # Only show for selected id and time2
+  #       help = "Highlighted point showing selected region's temperature data."
+  #     ),
+  scatterNow = ggplot() +
+  geom_text(
+    aes(20, -7, label = sprintf("all regions in %s", textdate), key = 1),
+    showSelected = "time2",
+    data = dates,
+    help = "Title showing current time period for the scatterplot."
+  ) +
+  theme_bw() +
+  geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
+  geom_vline(xintercept = 0, help = "Vertical zero line for reference.") +
+  xlim(-10, 40) +
+  ylim(-8, 8) +
+  xlab(getlab(var.names[[1]])) +
+  ylab(getlab(var.names[[2]])) +
+  theme_animint(width=420, height=450) +
+  # All points (unselected)
+  geom_point(
+    aes(
+      x = surftemp,
+      y = surfdev,
+      key = id,
+      tooltip = paste("Region:", id)
+    ),
+    data = climate,
+    alpha = 0.7,
+    color = "black",
+    fill = "grey",
+    size = 2.5,
+    clickSelects = "id",
+    showSelected = "time2",
+    help = "All regions' temperature data points for the selected time."
+  ) +
+  # Selected points (only shown when id is selected)
+  geom_point(
+    aes(
+      x = surftemp,
+      y = surfdev,
+      color = Selected
+    ),
+    data = transform(climate, Selected = "Region"),
+    fill = selected.color.region,
+    size = 3.5,
+    alpha = 1,
+    showSelected = c("id", "time2"),
+    help = "Highlighted point showing selected region's temperature data."
+  ) +
+  scale_color_manual(
+    name = "Selected",
+    values = c("Region" = selected.color.region)
+    # guide = guide_legend(override.aes = list(size = 4))
+  ),
+
 
     
 surftempTimeSeries = ggplot() +
         theme_bw() +
-        theme_animint(width=410, height=450) +
+        theme_animint(width=450, height=450) +
         geom_hline(yintercept = 0) +
         xlab("Year of measurement") +
         ylab("Surface Temperature (deg. Celsius)") +
-        
+        # make_tallrect(climate, "time2", 
+        #             color = selected.color.time, 
+        #             fill = selected.color.time, aes(tooltip = formatted_time)) +
+       geom_tallrect(
+          aes(
+            xmin = time2 - 0.05,
+            xmax = time2 + 0.05,
+            tooltip = formatted_time,
+            key = time2
+          ),
+          alpha = 0.4,
+          data = unique(climate[, c("time2", "formatted_time")]),
+          color = selected.color.time,
+          fill = selected.color.time,
+          clickSelects = "time2",
+          help = "Interactive time selector - click or drag to change time."
+        ) +
+      
         # All lines (gray)
         geom_line(
           aes(x = time2, y = surftemp, group = id),
@@ -165,43 +229,42 @@ surftempTimeSeries = ggplot() +
           clickSelects = "id"
         ) +
         
-        # Selected line (green) - properly connected to legend
         geom_line(
-          aes(x = time2, y = surftemp, color = Selected),
-          data = transform(climate, Selected = "Region"),
+          aes(x = time2, y = surftemp),
+          color = selected.color.region,
+          data = climate,
           size = 3,
           alpha = 1,
-          showSelected = "id"
-        ) +
-        make_tallrect(climate, "time2", 
-                    color = selected.color.time, 
-                    fill = selected.color.time, alpha = 0.3) +
-        geom_tallrect(
-          aes(xmin = (time2)-0.05, xmax = (time2)+0.05, color = Selected),       
-          clickSelects = "time2",
-          fill = selected.color.time,
-          showSelected = "time2",
-          alpha = 0.3,
-          data = transform(climate, Selected = "Time"),
-          help = "Interactive time selector - click or drag to change time."
-        ) +
-        
-        # Color scale
-        scale_color_manual(
-          name = "Selected",
-          values = c("Region" = selected.color.region,
-                    "Time" = selected.color.time),
-          
-        ),
+          showSelected = "id",
+          clickSelects = "id"
+        ) ,
 
 
       # Surface temperature deviation time series plot
       surfdevTimeSeries = ggplot() +
       theme_bw()+
-      theme_animint(width=410, height=450) +
+      theme_animint(width=450, height=450) +
       geom_hline(yintercept = 0, help = "Horizontal zero line for reference.") +
       xlab("Year of measurement") +
       ylab(getlab(var.names[[2]])) +
+      # make_tallrect(climate, "time2", 
+      #               color = selected.color.time, 
+      #               fill = selected.color.time ) +
+      geom_tallrect(
+          aes(
+            xmin = time2 - 0.05,
+            xmax = time2 + 0.05,
+            tooltip = formatted_time,
+            key = time2
+          ),
+          alpha = 0.4,
+          data = unique(climate[, c("time2", "formatted_time")]),
+          color = selected.color.time,
+          fill = selected.color.time,
+          clickSelects = "time2",
+          help = "Interactive time selector - click or drag to change time."
+        ) +
+      
       # All lines (gray)
       geom_line(
         aes_string(x = "time2", y = var.names[[2]], group = "id"),
@@ -212,42 +275,35 @@ surftempTimeSeries = ggplot() +
         clickSelects = "id",
         help = "All regions' temperature deviation time series."
       ) +
-      # Selected line (green)
+      
         geom_line(
-          aes(x = time2, y = surfdev, color = Selected),
-          data = transform(climate, Selected = "Region"),
+          aes(x = time2, y = surfdev),
+          color = selected.color.region,
+          data = climate,
           size = 3,
           alpha = 1,
-          showSelected = "id"
-        ) +
-      geom_line(
-          aes(x = time2, y = surfdev, color = Selected),
-          data = transform(climate, Selected = "Region"),
-          size = 3,
-          alpha = 1,
-          showSelected = "id"
-        ) +
+          showSelected = "id",
+          clickSelects = "id"
+        ) ,
     
-      make_tallrect(climate, "time2", 
-                    color = selected.color.time, 
-                    fill = selected.color.time, alpha = 0.3) +
-        geom_tallrect(
-          aes(xmin = (time2)-0.05, xmax = (time2)+0.05, color = Selected),       
-          clickSelects = "time2",
-          fill = selected.color.time,
-          showSelected = "time2",
-          alpha = 0.3,
-          data = transform(climate, Selected = "Time"),
-          help = "Interactive time selector - click or drag to change time."
-        ) +
+      
+        # geom_tallrect(
+        #   aes(xmin = (time2)-0.05, xmax = (time2)+0.05, color = Selected),       
+        #   clickSelects = "time2",
+        #   fill = selected.color.time,
+        #   showSelected = "time2",
+        #   alpha = 0.3,
+        #   data = transform(climate, Selected = "Time"),
+        #   help = "Interactive time selector - click or drag to change time."
+        # ) +
         
-        # Color scale
-        scale_color_manual(
-          name = "Selected",
-          values = c("Region" = selected.color.region,
-                    "Time" = selected.color.time),
+        # # Color scale
+        # scale_color_manual(
+        #   name = "Selected",
+        #   values = c("Region" = selected.color.region,
+        #             "Time" = selected.color.time),
           
-        ),
+        # ),
 
     # ScatterHere plot
       scatterHere = ggplot() +
@@ -262,27 +318,41 @@ surftempTimeSeries = ggplot() +
       ylim(-8, 8) +
       # All points (unselected)
       geom_point(
-        aes_string(x = var.names[[1]], y = var.names[[2]], key = "time2"),
-        data = climate,
-        alpha = 0.7,
-        color = "black",
-        fill = "grey",
-        size = 2.5,
-        clickSelects = "time2",
-        showSelected = "id",
-        help = "All time points' temperature data for the selected region."
-      ) +
-      # Selected points (only shown when time2 is selected)
-      geom_point(
-        aes_string(x = var.names[[1]], y = var.names[[2]]),
-        data = climate,
-        color = "#9595ff",  # Blue for selected time
-        fill = selected.color.time,
-        size = 3.5,               # Slightly larger when selected
-        alpha = 1,              # Opaque when selected
-        showSelected = c("time2", "id"),  # Only show for selected time2 and id
-        help = "Highlighted point showing selected time's temperature data for the region."
-      ),
+    aes(
+      x = surftemp,
+      y = surfdev,
+      key = time2,
+      tooltip = formatted_time
+    ),
+    data = climate,
+    alpha = 0.7,
+    color = "black",
+    fill = "grey",
+    size = 2.5,
+    clickSelects = "time2",
+    showSelected = "id",
+    help = "All time points' temperature data for the selected region."
+  ) +
+  # Selected points (only shown when time2 is selected)
+  geom_point(
+    aes(
+      x = surftemp,
+      y = surfdev,
+      color = Selected,
+      tooltp = paste("Region:", id)
+    ),
+    data = transform(climate, Selected = "Time"),
+    fill = selected.color.time,
+    size = 3.5,
+    alpha = 1,
+    showSelected = c("time2", "id"),
+    help = "Highlighted point showing selected time's temperature data for the region."
+  ) +
+  scale_color_manual(
+    name = "Selected",
+    values = c("Time" = selected.color.time)
+    # guide = guide_legend(override.aes = list(size = 4))
+  ),
       
       # Animation parameters
       duration = list(time2 = 2200, id = 1000),
@@ -303,4 +373,4 @@ surftempTimeSeries = ggplot() +
     )
 
 # Generate the visualization
-animint2pages(viz, "central-american-temperature-maps")
+animint2dir(viz, "central-american-temperature-maps")
