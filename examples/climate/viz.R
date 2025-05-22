@@ -54,9 +54,14 @@ for(var.name in var.names){
     ggplot() + 
     theme_bw()+
     theme_animint(width=400, height=450) +
+    #BASE LAYER SMOOTH TRANSITIONS
     geom_tile(aes_string(x="long", y="lat", fill=var.name, key = "id"
                   ), showSelected="time2", color = NA, alpha = 1,
               data=climate)+ 
+    #SELECTION LAYER     
+    geom_tile(aes_string(x="long", y="lat", key = "id"
+                  ),clickSelects = "id", color = "black", fill=NA, alpha = 0.4, showselected="time2",
+              data=climate)+
     scale_fill_gradient2("deg. C", low="#0000ae", mid="white", high="#ff1919",
                          midpoint=0, limits=lims[[var.name]]) + 
     ggtitle(long.name)+
