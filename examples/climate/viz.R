@@ -60,7 +60,7 @@ for(var.name in var.names){
               data=climate)+ 
     #SELECTION LAYER     
     geom_tile(aes_string(x="long", y="lat", key = "id"
-                  ),clickSelects = "id", color = "black", fill=NA, alpha = 0.4, showselected="time2",
+                  ),clickSelects = "id", color = selected.color.region, fill=NA, alpha = 0.4, showselected="time2",
               data=climate)+
     scale_fill_gradient2("deg. C", low="#0000ae", mid="white", high="#ff1919",
                          midpoint=0, limits=lims[[var.name]]) + 
