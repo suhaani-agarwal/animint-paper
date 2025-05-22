@@ -44,65 +44,38 @@ getlab <- function(var.name){
 climate$formatted_time <- format(ymd(climate$date), "%Y-%m")
 print(head(climate))
 
+# Defining the viz list
+plot_list <- list()
+
+# Surface deviation map and temperature map
+for(var.name in var.names){
+  long.name <- long.names[[var.name]]
+    plot_list[[paste0(var.name, "Map")]] <- 
+    ggplot() + 
+    theme_bw()+
+    theme_animint(width=400, height=450) +
+    geom_tile(aes_string(x="long", y="lat", fill=var.name, key = "id"
+                  ), showSelected="time2", color = NA, alpha = 1,
+              data=climate)+ 
+    scale_fill_gradient2("deg. C", low="#0000ae", mid="white", high="#ff1919",
+                         midpoint=0, limits=lims[[var.name]]) + 
+    ggtitle(long.name)+
+    geom_path(aes(long, lat, group=group), col="#757272",
+              data=countries) + 
+    geom_text(aes(-86, 39, label=textdate), showSelected="time2",
+              data=dates)+ 
+    theme(axis.line=element_blank(), axis.text=element_blank(), 
+          axis.ticks=element_blank(), axis.title=element_blank())
+    
+  
+}
+
 # Main visualization definition
-viz <- list(
-  #Surface Temperature map
-  surftempMap = ggplot() + 
-    theme_bw() +
-    theme_animint(width=400, height=450) +
-    geom_tile(aes(x = long, y = lat, fill = surftemp, key = paste(id, time2)), color = selected.color.region ,
-            clickSelects = "id", showSelected = "time2",
-            data = climate,
-            help = "Map showing surface temperature by region. Click to select a region.") + 
-    scale_fill_gradient2("deg. C", low = "blue", mid = "white", high = "#ff0000",
-                       midpoint = 0, limits = lims$surftemp) + 
-    ggtitle("Surface temperature") +
-    geom_path(aes(long, lat, group = group), col = "#908f8f",
-            data = countries,
-            help = "Country borders on the temperature map.") + 
-    geom_text(aes(-86, 39, label = textdate,key = paste("date", time2)), showSelected = "time2",
-            data = dates,
-            help = "Display of current month and year being viewed.") + 
-    theme(axis.line = element_blank(), 
-        axis.text = element_blank(), 
-        axis.ticks = element_blank(), 
-        axis.title = element_blank()),
+viz <- c(
+  plot_list, # This includes both surftempMap and surfdevMap
 
-    #Surface Temperature deviation map (monthly)
-    surfdevMap = ggplot() + 
-    theme_bw() +
-    theme_animint(width=400, height=450) +
-    geom_tile(aes(
-      x = long, 
-      y = lat, 
-      fill = surfdev,
-      key = paste(time2,id),group = id
-    ),color = selected.color.region,
-    help = "Map showing deviation from monthly temperature norms. Click to select a region.",
-    clickSelects = "id", 
-    showSelected = "time2",
-    data = climate) + 
-    scale_fill_gradient2("deg. C", 
-      low = "blue", 
-      mid = "white", 
-      high = "#ff0000",
-      midpoint = 0, 
-      limits = lims$surfdev) + 
-    ggtitle("Deviation from monthly norm") +
-    geom_path(aes(long, lat, group = group), 
-      col = "#908f8f",
-      data = countries,
-      help = "Country borders on the deviation map.") + 
-    geom_text(aes(-86, 39, label = textdate, key = paste("date", time2)), 
-      showSelected = "time2",
-      data = dates,
-      help = "Display of current month and year being viewed.") + 
-    theme(axis.line = element_blank(), 
-      axis.text = element_blank(), 
-      axis.ticks = element_blank(), 
-      axis.title = element_blank()),
-
-  scatterNow = ggplot() +
+  list(
+    scatterNow = ggplot() +
   geom_text(
     aes(20, -7, label = sprintf("all regions in %s", textdate), key = 1),
     showSelected = "time2",
@@ -338,7 +311,10 @@ surftempTimeSeries = ggplot() +
       ),
       title = "Central American Temperature Maps",
       source = 'http://github.com/suhaani-agarwal/animint-paper/blob/master/examples/climate/viz.R'
-    )
+
+  )
+)
 
 # Generate the visualization
 animint2pages(viz, "central-american-temperature-maps")
+
